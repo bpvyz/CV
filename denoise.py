@@ -77,6 +77,10 @@ def plot_results(original_img, magnitude_spectrum, mask, filtered_img, filtered_
 
 def main():
     img = load_image(f"MaterijalLV1/slika_{18823 % 5}.png")
+
+    # za razmisljanje
+    # img = cv2.fastNlMeansDenoising(img, None, h=10, templateWindowSize=7, searchWindowSize=21)
+
     rows, cols = img.shape
 
     ft_shifted = compute_fourier_transform(img)
