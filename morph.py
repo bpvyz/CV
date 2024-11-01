@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import cv2
 
 def load_image(file_path):
-    """Load an image in grayscale."""
     return cv2.imread(file_path)
 
 def plot_images(images, titles):
@@ -11,34 +10,54 @@ def plot_images(images, titles):
     plt.figure(figsize=(20, 4 * rows))
     for i in range(n):
         plt.subplot(rows, 3, i + 1)
-        plt.imshow(images[i], cmap='gray' if len(images[i].shape) == 2 else None)
+        # Postavi colormap na 'magma' za poslednje dve slike, inače na 'gray'
+        if i >= n - 2:
+            cmap = 'magma'
+        else:
+            # Postavi colormap na 'gray' za 2D slike ili None za RGB slike
+            if len(images[i].shape) == 2:
+                cmap = 'gray'
+            else:
+                cmap = None
+        plt.imshow(images[i], cmap=cmap)
         plt.title(titles[i])
     plt.tight_layout()
     plt.show()
+
+def apply_gray_filters(img_gray):
+    blur = cv2.GaussianBlur(img_gray, (5, 5), 0)
+    _, img_gray_thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    kernel_close = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    img_gray_closed = cv2.morphologyEx(img_gray_thresh, cv2.MORPH_CLOSE, kernel_close)
+
+    kernel_dilate = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    img_gray_dilated = cv2.dilate(img_gray_closed, kernel_dilate)
+
+    return blur, img_gray_thresh, img_gray_closed, img_gray_dilated
+
+def apply_saturation_filters(saturation_channel):
+    _, img_saturation_thresh = cv2.threshold(saturation_channel, 20, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    img_saturation_median_filtered = cv2.medianBlur(img_saturation_thresh, 7)
+
+    kernel_saturation = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
+    img_saturation_dilated = cv2.dilate(img_saturation_median_filtered, kernel_saturation)
+
+    return img_saturation_thresh, img_saturation_median_filtered, img_saturation_dilated
 
 def main():
     img_bgr = load_image("MaterijalLV2/coins.png")
     img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
 
-    # gaussian
-    blur = cv2.GaussianBlur(img_gray, (5, 5), 0)
+    # apply gray filters
+    blur, img_gray_thresh, img_gray_closed, img_gray_dilated = apply_gray_filters(img_gray)
 
-    # thresh
-    _, img_gray_thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
-    # close
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
-    img_gray_closed = cv2.morphologyEx(img_gray_thresh, cv2.MORPH_CLOSE, kernel)
-
-    # dilate
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    img_gray_dilated = cv2.dilate(img_gray_closed, kernel)
-
-    # test diff
+    # gray diffs
     img_difference = cv2.absdiff(img_gray_thresh, img_gray_closed)
     img_difference2 = cv2.absdiff(img_gray_thresh, img_gray_dilated)
 
-    images = [cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB), img_gray, blur, img_gray_thresh, img_gray_closed, img_gray_dilated, img_difference, img_difference2]
+    images = [cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB), img_gray, blur, img_gray_thresh, img_gray_closed,
+              img_gray_dilated, img_difference, img_difference2]
     titles = [
         "1: Originalna slika (RGB)",
         "2: Grayscale slika",
@@ -56,19 +75,16 @@ def main():
     img_hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
     saturation_channel = img_hsv[:, :, 1]
 
-    # saturation thresh
-    _, img_saturation_thresh = cv2.threshold(saturation_channel, 20, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    img_saturation_median_filtered = cv2.medianBlur(img_saturation_thresh, 7)
+    # apply saturation filters
+    img_saturation_thresh, img_saturation_median_filtered, img_saturation_dilated = apply_saturation_filters(
+        saturation_channel)
 
-    # saturation dilate
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
-    img_saturation_dilated = cv2.dilate(img_saturation_median_filtered, kernel)
-
-    # test diff
+    # saturation diffs
     img_difference = cv2.absdiff(img_saturation_thresh, img_saturation_median_filtered)
     img_difference2 = cv2.absdiff(img_saturation_thresh, img_saturation_dilated)
 
-    images_hsv = [img_hsv, saturation_channel, img_saturation_thresh, img_saturation_median_filtered, img_saturation_dilated, img_difference, img_difference2]
+    images_hsv = [img_hsv, saturation_channel, img_saturation_thresh, img_saturation_median_filtered,
+                  img_saturation_dilated, img_difference, img_difference2]
     titles_hsv = [
         "1: HSV slika",
         "2: Saturation kanal",
