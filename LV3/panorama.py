@@ -55,15 +55,15 @@ def main():
     flann = cv2.FlannBasedMatcher(index_params, search_params)
 
     images_gray = [
-        load_image_gray("MaterijalLV3/1.JPG"),
-        load_image_gray("MaterijalLV3/2.JPG"),
-        load_image_gray("MaterijalLV3/3.JPG")
+        load_image_gray("../MaterijalLV3/1.JPG"),
+        load_image_gray("../MaterijalLV3/2.JPG"),
+        load_image_gray("../MaterijalLV3/3.JPG")
     ]
 
     images_rgb = [
-        load_image_rgb("MaterijalLV3/1.JPG"),
-        load_image_rgb("MaterijalLV3/2.JPG"),
-        load_image_rgb("MaterijalLV3/3.JPG")
+        load_image_rgb("../MaterijalLV3/1.JPG"),
+        load_image_rgb("../MaterijalLV3/2.JPG"),
+        load_image_rgb("../MaterijalLV3/3.JPG")
     ]
 
     for i, image in enumerate(images_rgb):

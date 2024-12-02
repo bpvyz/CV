@@ -46,7 +46,7 @@ def apply_saturation_filters(saturation_channel):
     return img_saturation_thresh, img_saturation_median_filtered, img_saturation_dilated
 
 def main():
-    img_bgr = load_image("MaterijalLV2/coins.png")
+    img_bgr = load_image("../MaterijalLV2/coins.png")
     img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
 
     # apply gray filters
